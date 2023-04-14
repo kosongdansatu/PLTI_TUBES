@@ -42,6 +42,17 @@ from pathlib import Path
 
 import torch
 
+# set credentials firebase
+import firebase_admin
+from firebase_admin import credentials, db
+
+cred = credentials.Certificate("tubes-plti-firebase-adminsdk-z8xf5-f880ac18aa.json")
+default_app = firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://tubes-plti-default-rtdb.asia-southeast1.firebasedatabase.app/'
+})
+
+ref = db.reference("/")
+
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
@@ -186,6 +197,8 @@ def run(
             ret, jpeg = cv2.imencode('.jpg', im0)
             return jpeg.tobytes()
 
+            # Counting and Push Firebase ok
+            ref.push().set(s)
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
                     windows.append(p)
