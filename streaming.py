@@ -195,9 +195,8 @@ def run(
                         thickness=1,
                         lineType=cv2.LINE_AA)
             ret, jpeg = cv2.imencode('.jpg', im0)
-            return jpeg.tobytes()
 
-            # Counting and Push Firebase ok
+            # Counting and Push Firebase
             ref.push().set(s)
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
@@ -207,6 +206,8 @@ def run(
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond
 
+            return jpeg.tobytes()
+        
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'image':
