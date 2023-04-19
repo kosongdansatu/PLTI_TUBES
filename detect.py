@@ -45,7 +45,7 @@ import torch
 # set credentials firebase
 import firebase_admin
 from firebase_admin import credentials, db
-
+# Jika ingin mengganti alokasi data firebase ganti disini
 cred = credentials.Certificate("tubes-plti-firebase-adminsdk-z8xf5-f880ac18aa.json")
 default_app = firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://tubes-plti-default-rtdb.asia-southeast1.firebasedatabase.app/'
