@@ -196,8 +196,11 @@ def run(
                         lineType=cv2.LINE_AA)
             ret, jpeg = cv2.imencode('.jpg', im0)
 
-            # Counting and Push Firebase
-            ref.push().set(s)
+           # Counting and Push Firebase
+            users_ref = ref.child('DATA AI')
+            users_ref.push(s)
+
+            
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
                     windows.append(p)
