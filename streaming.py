@@ -46,9 +46,9 @@ import torch
 import firebase_admin
 from firebase_admin import credentials, db
 
-cred = credentials.Certificate("tubes-plti-firebase-adminsdk-z8xf5-f880ac18aa.json")
+cred = credentials.Certificate("firebase2.json")
 default_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://tubes-plti-default-rtdb.asia-southeast1.firebasedatabase.app/'
+    'databaseURL': 'https://plti-3de2b-default-rtdb.asia-southeast1.firebasedatabase.app/'
 })
 
 ref = db.reference("/")
@@ -102,6 +102,7 @@ def run(
     # Directories
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
+    deteksi = {"person": 0, "cell phone": 0}
 
     # Load model
     device = select_device(device)
@@ -181,6 +182,7 @@ def run(
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                        print(names[int(c)])  # untuk print object yang kedeteksi
                         annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
@@ -196,11 +198,12 @@ def run(
                         lineType=cv2.LINE_AA)
             ret, jpeg = cv2.imencode('.jpg', im0)
 
-           # Counting and Push Firebase
-            users_ref = ref.child('DATA AI')
-            users_ref.push(s)
+            # Counting and Push Firebase
+            deteksi[names[int(c)]] += 1 #deklarasi counting
+            print(deteksi)  # Print Deteksi counting
+            users_ref = ref.child('DATA_AI')
+            users_ref.set(deteksi)
 
-            
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
                     windows.append(p)
@@ -210,7 +213,7 @@ def run(
                 cv2.waitKey(1)  # 1 millisecond
 
             return jpeg.tobytes()
-        
+
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'image':
