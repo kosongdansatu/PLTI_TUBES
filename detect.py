@@ -28,6 +28,7 @@ Usage - formats:
                                  yolov5s_paddle_model       # PaddlePaddle
 """
 
+import torch
 from utils.torch_utils import select_device, smart_inference_mode
 from utils.plots import Annotator, colors, save_one_box
 from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
@@ -40,18 +41,17 @@ import platform
 import sys
 from pathlib import Path
 
-import torch
-
 # set credentials firebase
 import firebase_admin
 from firebase_admin import credentials, db
-# Jika ingin mengganti alokasi data firebase ganti disini
-cred = credentials.Certificate("tubes-plti-firebase-adminsdk-z8xf5-f880ac18aa.json")
+
+cred = credentials.Certificate("firebase2.json")
 default_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://tubes-plti-default-rtdb.asia-southeast1.firebasedatabase.app/'
+    'databaseURL': 'https://plti-3de2b-default-rtdb.asia-southeast1.firebasedatabase.app/'
 })
 
 ref = db.reference("/")
+
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -102,6 +102,7 @@ def run(
     # Directories
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
+    deteksi = {"person": 0, "cell phone": 0}
 
     # Load model
     device = select_device(device)
@@ -150,7 +151,7 @@ def run(
             if webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), dataset.count
                 #s += f'{i}: '
-                s += 'Counting: '
+                s += 'Counting:' # Untuk memunculkan tampilan label counting
             else:
                 p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
@@ -180,6 +181,7 @@ def run(
 
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
+                        print(names[int(c)]) #untuk print object yang kedeteksi
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
@@ -194,12 +196,13 @@ def run(
                         (255, 255, 255),
                         thickness=1,
                         lineType=cv2.LINE_AA)
-             # Counting and Push Firebase
-            # Counting and Push Firebase
-            users_ref = ref.child('DATA AI')
-            users_ref.push(s)
 
-            
+            # Counting and Push Firebase
+            deteksi[names[int(c)]] += 1
+            print(deteksi) #Print Deteksi
+            users_ref = ref.child('DATA_AI')
+            users_ref.set(deteksi)
+
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
                     windows.append(p)
@@ -274,6 +277,7 @@ def parse_opt():
     print_args(vars(opt))
     return opt
 
+
 def main(opt):
     check_requirements(exclude=('tensorboard', 'thop'))
     run(**vars(opt))
@@ -282,5 +286,3 @@ def main(opt):
 if __name__ == '__main__':
     opt = parse_opt()
     main(opt)
-
-
